@@ -11,13 +11,6 @@
 /* int main(int argv, char ** argc){ */
 int main(){
 
-    /* FILE * file = fopen("/proc/stat", "r"); */
-    /* long user, nice, system, idle, iowait, irq, softirq, steal, guest; */
-    /* fscanf(file, "cpu %ld %ld %ld %ld %ld %ld %ld %ld %ld", &user, &nice, &system, &idle, &iowait, &irq, &softirq, &steal, &guest); */
-    /* printf("CPU: %ld %ld %ld %ld %ld %ld %ld %ld %ld\n", user, nice, system, idle, iowait, irq, softirq, steal, guest); */
-    /* long active = user + system + nice + softirq + steal; */
-    /* long total  = active + idle + iowait; */
-    /* printf("active: %ld, total %ld\n", active, total); */
     std::locale::global(std::locale(""));
 
     std::ifstream statFile("/proc/stat");
@@ -26,7 +19,6 @@ int main(){
     long user, nice, system, idle, iowait, irq, softirq, steal;
     statFile >> cpu >> user >> nice >> system >> idle >> iowait >> irq >> softirq >> steal;
     statFile.close();
-    /* std::cout << cpu << ", " << user << ", " << nice << ", " << system << ", " << idle << ", " << iowait << ", " << irq << ", " << softirq << ", " << steal << '\n'; */
 
     long active = user + system + nice + softirq + steal;
     long total  = active + idle + iowait;
