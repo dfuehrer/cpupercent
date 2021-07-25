@@ -1,20 +1,17 @@
-#SRC = cpucercent.cpp
-SRC = cpupercent.cpp
+SRC = cpupercentServer.cpp
 DESTDIR=~
 PREFIX=/.local
 
-#cpucercent: $(SRC)
-cpupercent: $(SRC)
+cpupercentServer: $(SRC)
 	$(CXX) $(SRC) -o $@
 
 .PHONY: clean install
 
 clean:
-	rm -f cpupercent $(OBJ)
+	rm -f cpupercentServer $(OBJ)
 
-#install: cpucercent
-install: cpupercent
+install: cpupercentServer
 	mkdir -p ${DESTDIR}${PREFIX}/bin
-	cp -f cpupercent ${DESTDIR}${PREFIX}/bin
-	chmod 755 ${DESTDIR}${PREFIX}/bin/cpupercent
+	cp -f cpupercentServer ${DESTDIR}${PREFIX}/bin
+	chmod 755 ${DESTDIR}${PREFIX}/bin/cpupercentServer
 
