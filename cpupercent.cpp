@@ -11,13 +11,12 @@ int main(const int argv, const char * argc[]){
     std::ifstream statFile("/proc/stat");
     std::string cpu;
 
-    unsigned long user, nice, system, idle, iowait, irq, softirq, steal;
+    unsigned long      user,   nice,   system,   idle,   iowait,   irq,   softirq,   steal;
     statFile >> cpu >> user >> nice >> system >> idle >> iowait >> irq >> softirq >> steal;
     statFile.close();
 
     unsigned long active = user + system + nice + softirq + steal;
     unsigned long total  = active + idle + iowait;
-    /* std::cout << active << ' ' << total << '\n'; */
 
     PercentGraph<unsigned long, 2, 1> percentGraph("/home/dfuehrer/.cache/dwmblocks/cpupercent/cpupercent2.txt");
     //std::array<unsigned long, 2> stored = percentGraph.readDatas();
