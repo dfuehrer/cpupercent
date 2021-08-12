@@ -1,17 +1,25 @@
-SRC = cpupercentServer.cpp
+cpuSRC=cpupercentServer.cpp
+netSRC=networkServer.cpp
 DESTDIR=~
 PREFIX=/.local
 
-cpupercentServer: $(SRC)
-	$(CXX) $(SRC) -o $@
+all: cpupercentServer networkServer
+	$(MAKE) cpupercentServer
+	$(MAKE) networkServer
 
-.PHONY: clean install
+cpupercentServer: $(cpuSRC)
+	$(CXX) $(cpuSRC) -o $@ --std=c++17
+
+networkServer: $(netSRC)
+	$(CXX) $(netSRC) -o $@ --std=c++17
+
+.PHONY: clean install all
 
 clean:
-	rm -f cpupercentServer $(OBJ)
+	rm -f networkServer cpupercentServer $(OBJ)
 
-install: cpupercentServer
+install: all
 	mkdir -p ${DESTDIR}${PREFIX}/bin
-	cp -f cpupercentServer ${DESTDIR}${PREFIX}/bin
-	chmod 755 ${DESTDIR}${PREFIX}/bin/cpupercentServer
-
+	cp -f cpupercentServer networkServer ${DESTDIR}${PREFIX}/bin
+	#chown nobody:nogroup ${DESTDIR}${PREFIX}/bin/cpupercentServer ${DESTDIR}${PREFIX}/bin/networkServer
+	chmod 755 ${DESTDIR}${PREFIX}/bin/cpupercentServer ${DESTDIR}${PREFIX}/bin/networkServer
