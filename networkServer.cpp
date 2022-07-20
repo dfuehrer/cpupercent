@@ -17,7 +17,8 @@ server_t * server_ptr = nullptr;
 int main(const int argv, const char * argc[]){
 
     server_t server("/home/dfuehrer/.cache/dwmblocks/networkpercent/networkpercent", L'b');
-    server.setDelimeters({L'🔽', L'🔼'});
+    //server.setDelimeters({L'🔽', L'🔼'});
+    server.setDelimeters({L'🠗', L'🠕'});
     server_ptr = &server;
     setupSignals();
     // TODO figure out a better way to make a percentage out of bytes probably based on the network cards limits
