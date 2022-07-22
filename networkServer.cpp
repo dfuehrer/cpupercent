@@ -22,8 +22,8 @@ int main(const int argv, const char * argc[]){
     server_ptr = &server;
     setupSignals();
     // TODO figure out a better way to make a percentage out of bytes probably based on the network cards limits
-    constexpr int megabit_rx = 10;
-    constexpr int megabit_tx = 3;
+    constexpr int megabit_rx = 50;
+    constexpr int megabit_tx = 10;
 
     server.runServer([&server] (){
             std::ifstream rx_bytes_f("/sys/class/net/wlan0/statistics/rx_bytes");
