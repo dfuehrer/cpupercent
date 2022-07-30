@@ -3,7 +3,7 @@
 #include <string>
 #include <array>
 #include <csignal>
-#include "../percentgraph/percentgraphServer.hpp"
+#include "percentgraph/percentgraphServer.hpp"
 
 void sigHandler(int signal);
 void setupSignals();

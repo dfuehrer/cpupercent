@@ -2,7 +2,7 @@
 #include <fstream>
 #include <string>
 #include <array>
-#include "../percentgraph/percentgraph.hpp"
+#include "percentgraph/percentgraph.hpp"
 
 
 

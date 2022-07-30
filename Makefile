@@ -4,8 +4,6 @@ DESTDIR=~
 PREFIX=/.local
 
 all: cpupercentServer networkServer
-	$(MAKE) cpupercentServer
-	$(MAKE) networkServer
 
 cpupercentServer: $(cpuSRC)
 	$(CXX) $(cpuSRC) -o $@ --std=c++17

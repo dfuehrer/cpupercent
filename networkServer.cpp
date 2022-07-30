@@ -4,7 +4,7 @@
 #include <array>
 #include <csignal>
 #include <chrono>
-#include "../percentgraph/percentgraphServer.hpp"
+#include "percentgraph/percentgraphServer.hpp"
 
 void sigHandler(int signal);
 void setupSignals();
