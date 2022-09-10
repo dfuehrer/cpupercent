@@ -16,7 +16,8 @@ server_t * server_ptr = nullptr;
 
 int main(const int argv, const char * argc[]){
 
-    server_t server("/home/dfuehrer/.cache/dwmblocks/networkpercent/networkpercent", L'b');
+    std::string cacheDir = getCacheDir("dwmblocks/networkpercent");
+    server_t server(cacheDir + "/networkpercent", L'b');
     //server.setDelimeters({L'🔽', L'🔼'});
     server.setDelimeters({L'🠗', L'🠕'});
     server_ptr = &server;

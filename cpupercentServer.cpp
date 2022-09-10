@@ -3,6 +3,7 @@
 #include <string>
 #include <array>
 #include <csignal>
+#include <cstdlib>
 #include "percentgraph/percentgraphServer.hpp"
 
 void sigHandler(int signal);
@@ -15,7 +16,8 @@ server_t * server_ptr = nullptr;
 
 int main(const int argv, const char * argc[]){
 
-    server_t server("/home/dfuehrer/.cache/dwmblocks/cpupercent/cpupercent");
+    std::string cacheDir = getCacheDir("dwmblocks/cpupercent");
+    server_t server(cacheDir + "/cpupercent");
     server_ptr = &server;
     setupSignals();
 
