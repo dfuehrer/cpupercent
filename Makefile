@@ -1,5 +1,5 @@
-cpuSRC=cpupercentServer.cpp
-netSRC=networkServer.cpp
+cpuSRC=cpupercentServer.cpp percentgraph/percentgraphServer.hpp
+netSRC=networkServer.cpp percentgraph/percentgraphServer.hpp
 DESTDIR=~
 PREFIX=/.local
 

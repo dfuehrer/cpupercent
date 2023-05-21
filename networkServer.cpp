@@ -10,7 +10,7 @@ void sigHandler(int signal);
 void setupSignals();
 
 
-using server_t = PercentGraphServer<unsigned long, 3, 2, 2>;
+using server_t = PercentGraphServer<unsigned long long, 3, 2, 2>;
 server_t * server_ptr = nullptr;
 
 
@@ -22,33 +22,40 @@ int main(const int argv, const char * argc[]){
     server.setDelimeters({L'🠗', L'🠕'});
     server_ptr = &server;
     setupSignals();
-    // TODO figure out a better way to make a percentage out of bytes probably based on the network cards limits
+    // TODO figure out a better way to make a percentage out of bytes probably based on the network cards limits (/sys/class/net/*device*/speed)
     constexpr int megabit_rx = 50;
-    constexpr int megabit_tx = 10;
+    constexpr int megabit_tx = 15;
+    constexpr int ms2s       = 1000;
+    constexpr int mega       = 1000000;
 
     server.runServer([&server] (){
-            std::ifstream rx_bytes_f("/sys/class/net/wlan0/statistics/rx_bytes");
-            std::ifstream tx_bytes_f("/sys/class/net/wlan0/statistics/tx_bytes");
+            server_t::stored_t rx_bytes, tx_bytes, tmp;
 
-            server_t::stored_t rx_bytes, tx_bytes;
-            rx_bytes_f >> rx_bytes;
-            rx_bytes_f.close();
-            tx_bytes_f >> tx_bytes;
-            tx_bytes_f.close();
+            // TODO make this more dynamic than this
+            std::ifstream rx_bytes_wifi_f ("/sys/class/net/wlan0/statistics/rx_bytes");
+
+            rx_bytes_wifi_f >> rx_bytes;
+            rx_bytes_wifi_f.close();
+            std::ifstream tx_bytes_wifi_f ("/sys/class/net/wlan0/statistics/tx_bytes");
+            tx_bytes_wifi_f >> tx_bytes;
+            tx_bytes_wifi_f.close();
+            std::ifstream rx_bytes_ether_f("/sys/class/net/enp6s0/statistics/rx_bytes");
+            rx_bytes_ether_f >> tmp;
+            rx_bytes_ether_f.close();
+            rx_bytes += tmp;
+            std::ifstream tx_bytes_ether_f("/sys/class/net/enp6s0/statistics/tx_bytes");
+            tx_bytes_ether_f >> tmp;
+            tx_bytes_ether_f.close();
+            tx_bytes += tmp;
 
             auto [prx_bytes, ptx_bytes, ptime] = server.getDatas();
-            //std::array<unsigned long, 2> stored = percentGraph.readDatas();
-            //server_t::percent_t rx_percent = (rx_bytes - stored[0]) / megabit_rx / 1000000 * 8;
-            //server_t::percent_t tx_percent = (tx_bytes - stored[1]) / megabit_tx / 1000000 * 8;
-
-            //server_t::percent_t rx_percent = (rx_bytes - prx_bytes) / megabit_rx / 1000000 * 8;
-            //server_t::percent_t tx_percent = (tx_bytes - ptx_bytes) / megabit_tx / 1000000 * 8;
+            // this is an ugly line
             server_t::stored_t time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
 
-            server_t::stored_t  rx_bits = (rx_bytes - prx_bytes) * 8 * 1000 / (time - ptime);
-            server_t::percent_t rx_percent = rx_bits * 100 / megabit_rx / 1000000;
-            server_t::stored_t  tx_bits = (tx_bytes - ptx_bytes) * 8 * 1000 / (time - ptime);
-            server_t::percent_t tx_percent = tx_bits * 100 / megabit_tx / 1000000;
+            server_t::stored_t  rx_bits    = (rx_bytes - prx_bytes) * 8 * ms2s / (time - ptime);
+            server_t::percent_t rx_percent = rx_bits * 100 / megabit_rx / mega;
+            server_t::stored_t  tx_bits    = (tx_bytes - ptx_bytes) * 8 * ms2s / (time - ptime);
+            server_t::percent_t tx_percent = tx_bits * 100 / megabit_tx / mega;
 
             //std::cerr << rx_bytes << ' ' << prx_bytes << ' ' << time << ' ' << ptime << '\n';
             //std::cerr << rx_percent << '\n';
