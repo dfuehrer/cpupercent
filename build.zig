@@ -20,12 +20,12 @@ pub fn build(b: *std.build.Builder) void {
     //cpu_exe.addIncludePath("percentgraph/src/");
     cpu_exe.setTarget(target);
     cpu_exe.setBuildMode(mode);
+    cpu_exe.install();
 
     const network_exe = b.addExecutable("networkServer", "src/networkServer.zig");
     network_exe.addPackage(percentgraph_server_pkg);
     network_exe.setTarget(target);
     network_exe.setBuildMode(mode);
-    network_exe.install();
     network_exe.install();
 
     const cpu_run_cmd = cpu_exe.run();

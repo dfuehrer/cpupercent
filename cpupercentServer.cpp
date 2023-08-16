@@ -14,7 +14,7 @@ using server_t = PercentGraphServer<unsigned long, (16 + 1) * 2, 16, 1>;
 server_t * server_ptr = nullptr;
 
 
-int main(const int argv, const char * argc[]){
+int main(void){
 
     std::string cacheDir = getCacheDir("dwmblocks/cpupercent");
     server_t server(cacheDir + "/cpupercent");

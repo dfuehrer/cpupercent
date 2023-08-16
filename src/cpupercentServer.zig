@@ -16,7 +16,7 @@ pub fn main() !void {
     const alloc = fba.allocator();
     var cachedir_al = try percentgraph.getCacheDir(alloc, "dwmblocks/cpupercent");
     defer cachedir_al.deinit();
-    try cachedir_al.appendSlice("/test");
+    try cachedir_al.appendSlice("/cpupercent");
     var server = try server_t.init(cachedir_al.items);
     defer server.cleanup() catch unreachable;
     g_server = &server;
@@ -24,8 +24,8 @@ pub fn main() !void {
     g_server = null;
 }
 
-fn runServer(server: *server_t) void {
-    const statfile = std.fs.openFileAbsolute("/proc/stat", .{ .mode = .read_only }) catch unreachable;
+fn runServer(server: *server_t) server_t.ClientRequestErrors!void {
+    const statfile = std.fs.openFileAbsolute("/proc/stat", .{ .mode = .read_only }) catch return error.FileError;
     defer statfile.close();
     var statreader = statfile.reader();
     const saved = server.getDatas();
@@ -39,7 +39,7 @@ fn runServer(server: *server_t) void {
     const total_inds = [_]bool{ true, true, true, true, true, true, true, true, false, false };
     var cpu_line: usize = 0;
     while (cpu_line < server_t.num_graph_perc + server_t.num_print_perc) : (cpu_line += 1) {
-        const line = statreader.readUntilDelimiter(&buf, '\n') catch unreachable;
+        const line = statreader.readUntilDelimiter(&buf, '\n') catch return error.ReadError;
         const cpu_col = "cpu";
         if (!std.mem.eql(u8, line[0..cpu_col.len], cpu_col)) {
             // TODO 0 out data
@@ -56,7 +56,7 @@ fn runServer(server: *server_t) void {
             }
             const spaceind = ind + (std.mem.indexOfScalar(u8, line[ind..], ' ') orelse break);
             const colstr = line[ind..spaceind];
-            const usage = std.fmt.parseUnsigned(server_t.stored_t, colstr, 10) catch unreachable;
+            const usage = std.fmt.parseUnsigned(server_t.stored_t, colstr, 10) catch return error.ReadError;
             ind = spaceind + 1;
             if (total_inds[colnum]) {
                 total += usage;
@@ -87,7 +87,7 @@ fn sigHandler(signal: c_int) align(1) callconv(.C) void {
     // TODO figure out a way to do this other than a global var
     if (g_server) |server| {
         server.stopRunning();
-        server.cleanup() catch unreachable;
+        //server.cleanup() catch unreachable;
     }
     const dfl = std.os.Sigaction{
         .handler = .{ .handler = std.os.SIG.DFL },
