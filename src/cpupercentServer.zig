@@ -65,12 +65,18 @@ fn runServer(server: *server_t) server_t.ClientRequestErrors!void {
                 }
             }
         }
-        const perc = if (total == saved[cpu_line * 2 + 1])
+        const perc = if ((total <= saved[cpu_line * 2 + 1]) or (active < saved[cpu_line * 2]))
             0
         else
             ((active - saved[cpu_line * 2]) * 100) / (total - saved[cpu_line * 2 + 1]);
+        //var perc: server_t.stored_t = 0;
+        //if ((total <= saved[cpu_line * 2 + 1]) or (active < saved[cpu_line * 2])) {
+        //    std.debug.print("prev active: {}, total: {}; curr active: {}, total: {} ('{s}' -> '{s}')\n", .{ saved[cpu_line * 2], saved[cpu_line * 2 + 1], active, total, line });
+        //} else {
+        //    perc = ((active - saved[cpu_line * 2]) * 100) / (total - saved[cpu_line * 2 + 1]);
+        //}
         if (cpu_line >= server_t.num_print_perc) {
-            cpu_percents[cpu_line - server_t.num_print_perc] = @truncate(server_t.percent_t, perc);
+            cpu_percents[cpu_line - server_t.num_print_perc] = @truncate(perc);
         } else {
             percent[cpu_line] = perc;
         }
@@ -89,21 +95,21 @@ fn sigHandler(signal: c_int) align(1) callconv(.C) void {
         server.stopRunning();
         //server.cleanup() catch unreachable;
     }
-    const dfl = std.os.Sigaction{
-        .handler = .{ .handler = std.os.SIG.DFL },
-        .mask = std.os.empty_sigset,
+    const dfl = std.posix.Sigaction{
+        .handler = .{ .handler = std.posix.SIG.DFL },
+        .mask = std.posix.empty_sigset,
         .flags = 0,
     };
-    std.os.sigaction(@intCast(u6, signal), &dfl, null) catch unreachable;
+    std.posix.sigaction(@intCast(signal), &dfl, null) catch unreachable;
 }
 
 fn setupSignals() !void {
-    const act = std.os.Sigaction{
+    const act = std.posix.Sigaction{
         .handler = .{ .handler = sigHandler },
-        .mask = std.os.empty_sigset,
+        .mask = std.posix.empty_sigset,
         .flags = 0,
     };
-    try std.os.sigaction(std.os.SIG.HUP, &act, null);
-    try std.os.sigaction(std.os.SIG.TERM, &act, null);
-    try std.os.sigaction(std.os.SIG.INT, &act, null);
+    try std.posix.sigaction(std.posix.SIG.HUP, &act, null);
+    try std.posix.sigaction(std.posix.SIG.TERM, &act, null);
+    try std.posix.sigaction(std.posix.SIG.INT, &act, null);
 }

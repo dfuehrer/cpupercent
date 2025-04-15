@@ -58,12 +58,19 @@ fn runServer(server: *server_t) server_t.ClientRequestErrors!void {
     const ptx_bytes = saved[1];
     const ptime = saved[2];
 
-    const time = @intCast(server_t.stored_t, std.time.milliTimestamp());
+    const time: server_t.stored_t = @intCast(std.time.milliTimestamp());
+    var dt: server_t.stored_t = undefined;
+    if (time < ptime) {
+        std.debug.print("time reversed! ptime: {}, time: {}\n", .{ ptime, time });
+        dt = ptime - time;
+    } else {
+        dt = time - ptime;
+    }
 
-    const rx_bits: server_t.stored_t = (rx_bytes - prx_bytes) * 8 * ms2s / (time - ptime);
-    const rx_percent = @truncate(server_t.percent_t, rx_bits * 100 / megabit_rx / mega);
-    const tx_bits: server_t.stored_t = (tx_bytes - ptx_bytes) * 8 * ms2s / (time - ptime);
-    const tx_percent = @truncate(server_t.percent_t, tx_bits * 100 / megabit_tx / mega);
+    const rx_bits: server_t.stored_t = (rx_bytes - prx_bytes) * 8 * ms2s / dt;
+    const tx_bits: server_t.stored_t = (tx_bytes - ptx_bytes) * 8 * ms2s / dt;
+    const rx_percent: server_t.percent_t = @truncate(rx_bits * 100 / megabit_rx / mega);
+    const tx_percent: server_t.percent_t = @truncate(tx_bits * 100 / megabit_tx / mega);
 
     const percents = [server_t.num_print_perc]server_t.percent_t{ rx_percent, tx_percent };
     const network_bits = [server_t.num_graph_perc]server_t.stored_t{ rx_bits, tx_bits };
@@ -78,21 +85,21 @@ fn sigHandler(signal: c_int) align(1) callconv(.C) void {
         server.stopRunning();
         //server.cleanup() catch unreachable;
     }
-    const dfl = std.os.Sigaction{
-        .handler = .{ .handler = std.os.SIG.DFL },
-        .mask = std.os.empty_sigset,
+    const dfl = std.posix.Sigaction{
+        .handler = .{ .handler = std.posix.SIG.DFL },
+        .mask = std.posix.empty_sigset,
         .flags = 0,
     };
-    std.os.sigaction(@intCast(u6, signal), &dfl, null) catch unreachable;
+    std.posix.sigaction(@intCast(signal), &dfl, null) catch unreachable;
 }
 
 fn setupSignals() !void {
-    const act = std.os.Sigaction{
+    const act = std.posix.Sigaction{
         .handler = .{ .handler = sigHandler },
-        .mask = std.os.empty_sigset,
+        .mask = std.posix.empty_sigset,
         .flags = 0,
     };
-    try std.os.sigaction(std.os.SIG.HUP, &act, null);
-    try std.os.sigaction(std.os.SIG.TERM, &act, null);
-    try std.os.sigaction(std.os.SIG.INT, &act, null);
+    try std.posix.sigaction(std.posix.SIG.HUP, &act, null);
+    try std.posix.sigaction(std.posix.SIG.TERM, &act, null);
+    try std.posix.sigaction(std.posix.SIG.INT, &act, null);
 }

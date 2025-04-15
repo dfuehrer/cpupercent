@@ -1,6 +1,5 @@
 cpupercentServer
 networkServer
-zig-cache
-zig-out
+.zig-cache
 *.vim
 .exrc
