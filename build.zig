@@ -22,9 +22,11 @@ pub fn build(b: *std.Build) void {
 
     const cpu_exe = b.addExecutable(.{
         .name = "cpupercentServer",
-        .root_source_file = b.path("src/cpupercentServer.zig"),
-        .target = target,
-        .optimize = optimize,
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("src/cpupercentServer.zig"),
+            .target = target,
+            .optimize = optimize,
+        }),
     });
     cpu_exe.root_module.addImport("percentgraph", percentgraph);
     //const percentgraph_server_pkg = std.build.Pkg{ .name = "percentgraph", .source = .{ .path = "percentgraph/src/percentgraphServer.zig" } };
@@ -33,9 +35,11 @@ pub fn build(b: *std.Build) void {
 
     const network_exe = b.addExecutable(.{
         .name = "networkServer",
-        .root_source_file = b.path("src/networkServer.zig"),
-        .target = target,
-        .optimize = optimize,
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("src/networkServer.zig"),
+            .target = target,
+            .optimize = optimize,
+        }),
     });
     network_exe.root_module.addImport("percentgraph", percentgraph);
     //network_exe.addPackage(percentgraph_server_pkg);
@@ -60,9 +64,11 @@ pub fn build(b: *std.Build) void {
     network_run_step.dependOn(&network_run_cmd.step);
 
     const exe_tests = b.addTest(.{
-        .root_source_file = b.path("src/cpupercentServer.zig"),
-        .target = target,
-        .optimize = optimize,
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("src/cpupercentServer.zig"),
+            .target = target,
+            .optimize = optimize,
+        }),
     });
     const run_tests = b.addRunArtifact(exe_tests);
 

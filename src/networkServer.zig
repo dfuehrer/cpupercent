@@ -6,18 +6,19 @@ const server_t = percentgraph.PercentGraphServer(u64, 3, 2, 2);
 var g_server: ?*server_t = null;
 
 pub fn main() !void {
-    try setupSignals();
-    var buf: [100]u8 = undefined;
+    setupSignals();
+    var buf: [128]u8 = undefined;
     var fba = std.heap.FixedBufferAllocator.init(&buf);
     //defer fba.deinit();
     const alloc = fba.allocator();
     var cachedir_al = try percentgraph.getCacheDir(alloc, "dwmblocks/networkpercent");
-    defer cachedir_al.deinit();
-    try cachedir_al.appendSlice("/networkpercent");
+    defer cachedir_al.deinit(alloc);
+    try cachedir_al.appendSlice(alloc, "/networkpercent");
     var server = try server_t.initUnits(cachedir_al.items, [_]percentgraph.code_t{'b'} ** server_t.num_print_perc);
     //server.setDelimeters(&[_]server_t.code_t{'🔽', '🔼'});
     server.setDelimeters(&[_]percentgraph.code_t{ '🠗', '🠕' });
     defer server.cleanup() catch unreachable;
+    server.saveDatas(&[server_t.num_saved]server_t.stored_t{ 0, 0, 0 });
     g_server = &server;
     try server.runServerFunc(runServer);
     g_server = null;
@@ -33,23 +34,19 @@ fn runServer(server: *server_t) server_t.ClientRequestErrors!void {
     var rx_bytes: server_t.stored_t = undefined;
     var tx_bytes: server_t.stored_t = undefined;
     const rx_bytes_wifi_file = std.fs.openFileAbsolute("/sys/class/net/wlan0/statistics/rx_bytes", .{ .mode = .read_only }) catch return error.FileError;
-    var reader = rx_bytes_wifi_file.reader();
-    bytes_len = reader.readAll(&buf) catch return error.ReadError;
+    bytes_len = rx_bytes_wifi_file.read(&buf) catch return error.ReadError;
     rx_bytes = std.fmt.parseUnsigned(server_t.stored_t, buf[0 .. bytes_len - 1], 10) catch return error.ReadError;
     rx_bytes_wifi_file.close();
     const tx_bytes_wifi_file = std.fs.openFileAbsolute("/sys/class/net/wlan0/statistics/tx_bytes", .{ .mode = .read_only }) catch return error.FileError;
-    reader = tx_bytes_wifi_file.reader();
-    bytes_len = reader.readAll(&buf) catch return error.ReadError;
+    bytes_len = tx_bytes_wifi_file.read(&buf) catch return error.ReadError;
     tx_bytes = std.fmt.parseUnsigned(server_t.stored_t, buf[0 .. bytes_len - 1], 10) catch return error.ReadError;
     tx_bytes_wifi_file.close();
     const rx_bytes_ether_file = std.fs.openFileAbsolute("/sys/class/net/enp6s0/statistics/rx_bytes", .{ .mode = .read_only }) catch return error.FileError;
-    reader = rx_bytes_ether_file.reader();
-    bytes_len = reader.readAll(&buf) catch return error.ReadError;
+    bytes_len = rx_bytes_ether_file.read(&buf) catch return error.ReadError;
     rx_bytes += std.fmt.parseUnsigned(server_t.stored_t, buf[0 .. bytes_len - 1], 10) catch return error.ReadError;
     rx_bytes_ether_file.close();
     const tx_bytes_ether_file = std.fs.openFileAbsolute("/sys/class/net/enp6s0/statistics/tx_bytes", .{ .mode = .read_only }) catch return error.FileError;
-    reader = tx_bytes_ether_file.reader();
-    bytes_len = reader.readAll(&buf) catch return error.ReadError;
+    bytes_len = tx_bytes_ether_file.read(&buf) catch return error.ReadError;
     tx_bytes += std.fmt.parseUnsigned(server_t.stored_t, buf[0 .. bytes_len - 1], 10) catch return error.ReadError;
     tx_bytes_ether_file.close();
 
@@ -79,7 +76,7 @@ fn runServer(server: *server_t) server_t.ClientRequestErrors!void {
     server.saveDatas(&tosave);
 }
 
-fn sigHandler(signal: c_int) align(1) callconv(.C) void {
+fn sigHandler(signal: c_int) align(1) callconv(.c) void {
     // TODO figure out a way to do this other than a global var
     if (g_server) |server| {
         server.stopRunning();
@@ -87,19 +84,19 @@ fn sigHandler(signal: c_int) align(1) callconv(.C) void {
     }
     const dfl = std.posix.Sigaction{
         .handler = .{ .handler = std.posix.SIG.DFL },
-        .mask = std.posix.empty_sigset,
+        .mask = std.posix.sigemptyset(),
         .flags = 0,
     };
-    std.posix.sigaction(@intCast(signal), &dfl, null) catch unreachable;
+    std.posix.sigaction(@intCast(signal), &dfl, null);
 }
 
-fn setupSignals() !void {
+fn setupSignals() void {
     const act = std.posix.Sigaction{
         .handler = .{ .handler = sigHandler },
-        .mask = std.posix.empty_sigset,
+        .mask = std.posix.sigemptyset(),
         .flags = 0,
     };
-    try std.posix.sigaction(std.posix.SIG.HUP, &act, null);
-    try std.posix.sigaction(std.posix.SIG.TERM, &act, null);
-    try std.posix.sigaction(std.posix.SIG.INT, &act, null);
+    std.posix.sigaction(std.posix.SIG.HUP, &act, null);
+    std.posix.sigaction(std.posix.SIG.TERM, &act, null);
+    std.posix.sigaction(std.posix.SIG.INT, &act, null);
 }
