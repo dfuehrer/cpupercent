@@ -1,11 +1,10 @@
 const std = @import("std");
 const percentgraph = @import("percentgraph");
 //const percentgraph = @import("percentgraphServer.zig");
+const params = @import("compile_params");
 
-// TODO figure out how to get num cpus at compile time
-const num_cpus = 16;
 const num_percs = 1;
-const server_t = percentgraph.PercentGraphServer(u64, (num_cpus + num_percs) * 2, num_cpus, num_percs);
+const server_t = percentgraph.PercentGraphServer(u64, (params.num_cpus + num_percs) * 2, params.num_cpus, num_percs);
 var g_server: ?*server_t = null;
 
 pub fn main() !void {

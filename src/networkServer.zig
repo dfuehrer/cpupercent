@@ -2,6 +2,7 @@ const std = @import("std");
 const percentgraph = @import("percentgraph");
 
 // TODO figure out how to get network stuffs at compile time
+//  - would need to add an options module that goes looking for things, which might be a bit too much
 const server_t = percentgraph.PercentGraphServer(u64, 3, 2, 2);
 var g_server: ?*server_t = null;
 

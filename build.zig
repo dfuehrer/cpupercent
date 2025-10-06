@@ -15,6 +15,9 @@ pub fn build(b: *std.Build) void {
     // set a preferred release mode, allowing the user to decide how to optimize.
     const optimize = b.standardOptimizeOption(.{});
 
+    const params = b.addOptions();
+    params.addOption(usize, "num_cpus", std.Thread.getCpuCount() catch unreachable);
+
     // create module for percentgraph lib
     const percentgraph = b.addModule("percentgraph", .{
         .root_source_file = b.path("percentgraph/src/percentgraphServer.zig"),
@@ -29,6 +32,7 @@ pub fn build(b: *std.Build) void {
         }),
     });
     cpu_exe.root_module.addImport("percentgraph", percentgraph);
+    cpu_exe.root_module.addOptions("compile_params", params);
     //const percentgraph_server_pkg = std.build.Pkg{ .name = "percentgraph", .source = .{ .path = "percentgraph/src/percentgraphServer.zig" } };
     //cpu_exe.addPackage(percentgraph_server_pkg);
     b.installArtifact(cpu_exe);
